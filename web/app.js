@@ -20,6 +20,20 @@ function element(tag, className, text) {
   return node;
 }
 
+async function fetchJson(url, options) {
+  const response = await fetch(url, options);
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.toLowerCase().includes("application/json")) {
+    throw new Error(
+      "Dashboard API returned a web page instead of JSON. Open the URL printed by `npm run ui` " +
+      "(default: http://127.0.0.1:4173), not the VS Code Live Server page.",
+    );
+  }
+  const payload = await response.json();
+  if (!response.ok) throw new Error(payload.error || `Request failed (${response.status})`);
+  return payload;
+}
+
 function showWalletMessage(message, className = "") {
   walletStatus.replaceChildren(element("span", className, message));
 }
@@ -29,9 +43,7 @@ async function loadWalletStatus() {
   showWalletMessage("Checking local wallet and Devnet balance…");
   walletStatus.prepend(element("span", "spinner"));
   try {
-    const response = await fetch("/api/solana/status");
-    const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error || `Request failed (${response.status})`);
+    const payload = await fetchJson("/api/solana/status");
     if (!payload.configured) {
       walletReady = false;
       showWalletMessage("Wallet not configured. Set SOLANA_KEYPAIR_PATH in your local environment.", "wallet-warning");
@@ -64,9 +76,8 @@ async function loadWalletStatus() {
 
 async function loadDefaultLockfile() {
   try {
-    const response = await fetch("/api/config");
-    const payload = await response.json();
-    if (response.ok && typeof payload.defaultLockfile === "string") {
+    const payload = await fetchJson("/api/config");
+    if (typeof payload.defaultLockfile === "string") {
       lockfileInput.value = payload.defaultLockfile;
     }
   } catch {
@@ -103,7 +114,7 @@ scanForm.addEventListener("submit", async (event) => {
   reportSection.hidden = true;
 
   try {
-    const response = await fetch("/api/scan", {
+    const payload = await fetchJson("/api/scan", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -111,8 +122,6 @@ scanForm.addEventListener("submit", async (event) => {
         explain: document.querySelector("#explain").checked,
       }),
     });
-    const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error || `Scan failed (${response.status})`);
     activeReportDigest = payload.reportSha256;
     reportDigest.textContent = activeReportDigest;
     reportSummary.replaceChildren(
@@ -140,13 +149,11 @@ receiptButton.addEventListener("click", async () => {
   receiptButton.textContent = "Submitting to Devnet…";
   receiptResult.textContent = "";
   try {
-    const response = await fetch("/api/solana/receipt", {
+    const payload = await fetchJson("/api/solana/receipt", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ reportSha256: activeReportDigest }),
     });
-    const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error || `Receipt failed (${response.status})`);
     receiptResult.replaceChildren(
       document.createTextNode("Confirmed on Solana Devnet · "),
       Object.assign(element("a", "", payload.signature), {

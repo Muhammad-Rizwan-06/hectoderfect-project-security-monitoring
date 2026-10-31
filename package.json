@@ -1,0 +1,30 @@
+{
+  "name": "depguard",
+  "version": "0.1.0",
+  "description": "Auditable npm dependency risk scanner with OSV, Snowflake, and Solana Devnet integrations",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=20.18.0"
+  },
+  "bin": {
+    "depguard": "dist/cli.js"
+  },
+  "scripts": {
+    "start": "node dist/cli.js",
+    "build": "tsc -p tsconfig.json",
+    "test": "tsx --test test/*.test.ts",
+    "check": "npm run build && npm test",
+    "scan:demo": "tsx src/cli.ts scan --lockfile test/fixtures/package-lock.json"
+  },
+  "dependencies": {
+    "@solana/web3.js": "^3.1.1",
+    "dotenv": "^16.6.1",
+    "snowflake-sdk": "^3.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

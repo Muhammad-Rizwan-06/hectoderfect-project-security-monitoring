@@ -27,11 +27,15 @@ export interface SolanaReceipt {
   explorerUrl: string;
 }
 
-export async function submitDevnetReceipt(reportSha256: string): Promise<SolanaReceipt> {
-  const keypairPath = process.env.SOLANA_KEYPAIR_PATH?.trim();
-  if (!keypairPath) throw new Error("Set SOLANA_KEYPAIR_PATH to a local Solana Devnet keypair JSON file.");
-  if (!/^[a-f0-9]{64}$/.test(reportSha256)) throw new Error("Report digest must be a SHA-256 hex string.");
+export interface SolanaWalletStatus {
+  configured: boolean;
+  network: "devnet";
+  wallet?: string;
+  balanceSol?: number;
+  error?: string;
+}
 
+async function loadKeypair(keypairPath: string): Promise<Keypair> {
   let secret: unknown;
   try {
     secret = JSON.parse(await readFile(keypairPath, "utf8")) as unknown;
@@ -41,8 +45,38 @@ export async function submitDevnetReceipt(reportSha256: string): Promise<SolanaR
   if (!isSecretKeyBytes(secret)) {
     throw new Error("The Solana keypair file must contain a JSON array of 64 byte values.");
   }
+  return Keypair.fromSecretKey(Uint8Array.from(secret));
+}
 
-  const keypair = await Keypair.fromSecretKey(Uint8Array.from(secret));
+export async function getDevnetWalletStatus(): Promise<SolanaWalletStatus> {
+  const keypairPath = process.env.SOLANA_KEYPAIR_PATH?.trim();
+  if (!keypairPath) return { configured: false, network: "devnet" };
+
+  try {
+    const keypair = await loadKeypair(keypairPath);
+    const connection = new Connection(DEVNET_RPC_URL, "confirmed");
+    const balanceLamports = await connection.getBalance(new PublicKey(keypair.address));
+    return {
+      configured: true,
+      network: "devnet",
+      wallet: keypair.address,
+      balanceSol: Number(balanceLamports) / 1_000_000_000,
+    };
+  } catch (error) {
+    return {
+      configured: true,
+      network: "devnet",
+      error: errorMessage(error),
+    };
+  }
+}
+
+export async function submitDevnetReceipt(reportSha256: string): Promise<SolanaReceipt> {
+  const keypairPath = process.env.SOLANA_KEYPAIR_PATH?.trim();
+  if (!keypairPath) throw new Error("Set SOLANA_KEYPAIR_PATH to a local Solana Devnet keypair JSON file.");
+  if (!/^[a-f0-9]{64}$/.test(reportSha256)) throw new Error("Report digest must be a SHA-256 hex string.");
+
+  const keypair = await loadKeypair(keypairPath);
   const connection = new Connection(DEVNET_RPC_URL, "confirmed");
   const instruction = new TransactionInstruction({
     keys: [],

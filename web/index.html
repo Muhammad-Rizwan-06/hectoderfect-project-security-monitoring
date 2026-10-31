@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#101812">
+    <title>DepGuard | Solana audit</title>
+    <link rel="stylesheet" href="/styles.css">
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="DepGuard home">
+          <span class="brand-mark">D</span>
+          <span>depguard<span class="brand-period">.</span></span>
+        </a>
+        <div class="topbar-right">
+          <span class="network-pill"><span class="status-dot"></span> SOLANA DEVNET</span>
+          <span class="local-pill">LOCAL DASHBOARD</span>
+        </div>
+      </header>
+
+      <section class="intro">
+        <p class="eyebrow">SUPPLY CHAIN SECURITY · ON-CHAIN PROOF</p>
+        <h1>Audit with<br><span>verifiable receipts.</span></h1>
+        <p class="intro-copy">Scan an npm lockfile, review the evidence, then anchor the report's SHA-256 digest on Solana Devnet. Your wallet stays on this machine.</p>
+      </section>
+
+      <section class="wallet-card panel" aria-labelledby="wallet-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">WALLET STATUS</p>
+            <h2 id="wallet-title">Devnet connection</h2>
+          </div>
+          <button id="refresh-wallet" class="button button-quiet" type="button">Refresh</button>
+        </div>
+        <div id="wallet-status" class="wallet-status" role="status" aria-live="polite">
+          <span class="spinner"></span> Checking local wallet configuration…
+        </div>
+        <p class="privacy-note"><span aria-hidden="true">⌑</span> Private key is read from <code>SOLANA_KEYPAIR_PATH</code> on this machine. It is never sent to the browser or written to the report.</p>
+      </section>
+
+      <section class="scan-card panel" aria-labelledby="scan-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">STEP 01 · CHECK DEPENDENCIES</p>
+            <h2 id="scan-title">Run a vulnerability scan</h2>
+          </div>
+          <span class="source-tag">OSV DATABASE</span>
+        </div>
+        <form id="scan-form">
+          <label for="lockfile">Absolute path to package-lock.json</label>
+          <div class="input-row">
+            <input id="lockfile" name="lockfile" type="text" autocomplete="off" spellcheck="false" required>
+            <button id="scan-button" class="button button-primary" type="submit">Scan lockfile <span aria-hidden="true">↗</span></button>
+          </div>
+          <label class="check-option" for="explain">
+            <input id="explain" name="explain" type="checkbox">
+            <span>Explain findings with Gemma 4</span>
+            <span class="optional-label">OPTIONAL · REQUIRES API KEY</span>
+          </label>
+          <p class="helper-text">The lockfile is parsed locally; only package names and exact versions are sent to OSV. Gemini receives advisory metadata only when explanations are enabled.</p>
+        </form>
+        <div id="scan-error" class="message message-error" role="alert" hidden></div>
+      </section>
+
+      <section id="report-section" class="report-section" aria-live="polite" hidden>
+        <div id="report-summary" class="report-summary"></div>
+        <div class="receipt-card panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">STEP 02 · PROOF OF AUDIT</p>
+              <h2>Anchor report on Solana</h2>
+            </div>
+            <span class="source-tag source-tag-green">SHA-256 · MEMO</span>
+          </div>
+          <p class="receipt-copy">Only this digest is written to Devnet. The dependency list and report contents stay off-chain.</p>
+          <div class="digest-box">
+            <span>REPORT DIGEST</span>
+            <code id="report-digest"></code>
+          </div>
+          <button id="receipt-button" class="button button-primary" type="button" disabled>Submit Devnet receipt <span aria-hidden="true">↗</span></button>
+          <div id="receipt-result" class="receipt-result" role="status" aria-live="polite"></div>
+        </div>
+        <div id="findings" class="findings-list"></div>
+      </section>
+
+      <footer>
+        <span>DEPGuard · DEFENSIVE AUDITING</span>
+        <span>Devnet only · No secrets in browser</span>
+      </footer>
+    </main>
+  </body>
+</html>

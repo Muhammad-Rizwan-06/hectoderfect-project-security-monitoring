@@ -22,6 +22,17 @@ npm test
 npm start
 ```
 
+Start the local Solana-first dashboard with:
+
+```powershell
+$env:SOLANA_KEYPAIR_PATH = "$HOME\.config\solana\depguard-devnet.json"
+npm run ui
+```
+
+Open the loopback URL printed in the terminal (default `http://127.0.0.1:4173`). The page shows the configured Devnet public address and balance, scans an absolute path to `package-lock.json`, and lets you submit a receipt for that scan. The server binds to `127.0.0.1` only. It never accepts a private key through the browser; it reads the keypair file locally. If the wallet is not configured/funded, scanning still works but receipt submission remains disabled.
+
+The dashboard's optional Gemma checkbox uses `GEMINI_API_KEY` and `GEMMA_MODEL` in the same local environment as the server. Snowflake selection is currently available through the CLI, not this first dashboard slice.
+
 For development from a checkout, use:
 
 ```powershell
